@@ -1,26 +1,34 @@
-var map = L.map('map').setView([36.355, 127.766], 13);  // 대전의 중심 좌표
+var map = L.map('map').setView([36.192478, 127.369182], 13);  // 대전의 중심 좌표
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-// 실시간 도로 혼잡 정보를 가져오는 함수
 function fetchTrafficData() {
+    let bound = map.getBounds()
+    let x0 = bound.getSouthWest().lng;
+    let y0 = bound.getSouthWest().lat;
+    let x1 = bound.getNorthEast().lng;
+    let y1 = bound.getNorthEast().lat;
+    if (x0 > x1) [x0, x1] = [x1, x0];
+    if (y0 > y1) [y0, y1] = [y1, y0];
+    console.log(`Requesting traffic data for (${x0}, ${y0}) - (${x1}, ${y1})`);
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            minX: 127.369182,
-            maxX: 127.530568,
-            minY: 36.192478,
-            maxY: 36.297312
+            minX: x0,
+            maxX: x1,
+            minY: y0,
+            maxY: y1
         })
     };
 
     fetch('https://carboncongestion.store/main', requestOptions)
         .then(response => response.json())
         .then(data => {
+            console.log('Traffic data:', data);
             displayTrafficData(data.items);  // 응답에서 'items' 배열을 정확히 참조
         })
         .catch(error => {
@@ -31,11 +39,14 @@ function fetchTrafficData() {
 // 지도에 도로 혼잡 정보를 표시
 function displayTrafficData(trafficData) {
     trafficData.forEach(item => {
-        var color = determineColorByStatus(item.road_status);
-        L.polyline([
-            [item.minY, item.minX],
-            [item.maxY, item.maxX]
-        ], { color: color }).bindPopup(`${item.road_name} 현재 속도: ${item.speed}km/h`).addTo(map);
+        try {
+            var color = determineColorByStatus(item.road_status);
+            polyline = JSON.parse(item.geometry);
+            polyline = polyline.map(coord => [coord[1], coord[0]]);
+            L.polyline(polyline, { color: color }).bindPopup(`${item.road_name} 현재 속도: ${item.speed}km/h`).addTo(map);
+        } catch (error) {
+            console.error('Error parsing geometry:', error);
+        }
     });
 }
 
@@ -44,4 +55,5 @@ function determineColorByStatus(status) {
     return status === 3 ? 'red' : status === 2 ? 'yellow' : 'green';
 }
 
-fetchTrafficData();
+map.on("load", fetchTrafficData);
+map.on("moveend", fetchTrafficData);
