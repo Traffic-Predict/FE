@@ -1,9 +1,22 @@
-var map = L.map('map').setView([36.192478, 127.369182], 13);  // 대전의 중심 좌표
+var map = L.map('map').setView([36.332165597, 127.434310227], 13);  // 대전의 중심 좌표
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
+
+function clearMap() {
+    for (i in map._layers) {
+        if (map._layers[i]._path != undefined) {
+            try {
+                map.removeLayer(map._layers[i]);
+            }
+            catch (e) {
+                console.log("problem with " + e + map._layers[i]);
+            }
+        }
+    }
+}
 
 function fetchTrafficData() {
     let bound = map.getBounds()
@@ -11,9 +24,10 @@ function fetchTrafficData() {
     let y0 = bound.getSouthWest().lat;
     let x1 = bound.getNorthEast().lng;
     let y1 = bound.getNorthEast().lat;
+    let zoomLevel = map.getZoom();
     if (x0 > x1) [x0, x1] = [x1, x0];
     if (y0 > y1) [y0, y1] = [y1, y0];
-    console.log(`Requesting traffic data for (${x0}, ${y0}) - (${x1}, ${y1})`);
+    //console.log(`Requesting traffic data for (${x0}, ${y0}) - (${x1}, ${y1})`);
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -21,15 +35,17 @@ function fetchTrafficData() {
             minX: x0,
             maxX: x1,
             minY: y0,
-            maxY: y1
+            maxY: y1,
+            zoom: zoomLevel
         })
     };
 
     fetch('https://carboncongestion.store/main', requestOptions)
         .then(response => response.json())
         .then(data => {
-            console.log('Traffic data:', data);
-            displayTrafficData(data.items);  // 응답에서 'items' 배열을 정확히 참조
+            //console.log('Traffic data:', data);
+            clearMap();
+            displayTrafficData(data.items);
         })
         .catch(error => {
             console.error('Error fetching traffic data:', error);
