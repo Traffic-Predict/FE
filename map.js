@@ -59,7 +59,7 @@ function displayTrafficData(trafficData) {
             var color = determineColorByStatus(item.road_status);
             polyline = JSON.parse(item.geometry);
             polyline = polyline.map(coord => [coord[1], coord[0]]);
-            L.polyline(polyline, { color: color }).bindPopup(`${item.road_name} 현재 속도: ${item.speed}km/h`).addTo(map);
+            L.polyline(polyline, { color: color, weight: 4 }).bindPopup(`${item.road_name} 현재 속도: ${item.speed}km/h`).addTo(map);
         } catch (error) {
             console.error('Error parsing geometry:', error);
         }
