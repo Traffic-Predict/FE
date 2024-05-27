@@ -73,3 +73,7 @@ function determineColorByStatus(status) {
 
 map.on("load", fetchTrafficData);
 map.on("moveend", fetchTrafficData);
+
+window.onload = function () {
+    fetchTrafficData();
+}
