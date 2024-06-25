@@ -13,9 +13,43 @@
     <body>
         <nav>
             <div id="nav">
-                <h1>&nbsp;대전광역시 실시간 교통정보</h1>
+                <div class="sidebutton">
+                    <a href="#" onclick="changeMode('road')">
+                        <div class="road on_image">
+                            <image src="asset/road_on.svg" alt="road" />
+                        </div>
+                        <div class="under_image">
+                            <image src="asset/road.svg" alt="road" />
+                        </div>
+                    </a>
+                </div>
+                <div class="sidebutton">
+                    <a href="#" onclick="changeMode('predict')">
+                        <div class="predict on_image">
+                            <image src="asset/predict_on.svg" alt="predict" />
+                        </div>
+                        <div class="under_image">
+                            <image src="asset/predict.svg" alt="predict" />
+                        </div>
+                    </a>
+                </div>
             </div>
         </nav>
+        <div class="predict" id="date_selection">
+            <!-- 시간 및 날짜 고르기-->
+            <input
+                type="date"
+                id="date"
+                value="2024-06-26"
+                onchange="fetchTrafficData()"
+            />
+            <input
+                type="time"
+                id="time"
+                value="13:00"
+                onchange="fetchTrafficData()"
+            />
+        </div>
         <div id="map"></div>
         <script
             src="https://unpkg.com/leaflet/dist/leaflet.js"
